@@ -3,8 +3,7 @@ import random
 
 
 characters = "abcdefghijklmnopqrstuvwxyz"
-dictionary = []
-	
+dictionary = []	
 	
 def getdictionary(length):
 	if not os.path.exists("StrippedDictionaries"):
@@ -31,7 +30,16 @@ def stripdictionary(dictionary, word, evaluation):
 	misplacedletters = []
 	for i in range(len(word)):
 		if evaluation[i] == '0':
-			forbiddenletters += word[i]
+			if word.count(word[i]) == 1:
+				forbiddenletters += word[i]
+			else:
+				allzeroes = True
+				for i2 in range(len(word)):
+					if word[i2] == word[i] and evaluation[i2] != 0:
+						allzeroes = False
+						break
+				if(allzeroes):  
+					forbiddenletters += word[i]
 		if evaluation[i] == '1':
 			includedletters += word[i]
 			misplacedletters.append([word[i], i])
