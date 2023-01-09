@@ -6,3 +6,5 @@ it may not be perfect for this purpose, as it contains a lot of abbreviations an
 
 TODO
 - Generate all still possible letter combinations if the word is not found.
+- Smarter srategy for finding the correct words, where we take "guesses" which can't be the correct one, but reveal information about other letters, stripping down possibilities further.
+- (possibly) look for a dictionary, which better matches most wordle implementations. The current one contains way too many words, which different wordle implementations do not accept as valid answers. The one currently in use is also kind of inconsistent, containing some names but not nearly all (eg. it has allie but not ellie, neither of which are accepted as answers by the new york times wordle)
