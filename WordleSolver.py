@@ -24,50 +24,95 @@ def getdictionary(length):
 
 #takes words out of a dictionary based on results from wordle
 def stripdictionary(dictionary, word, evaluation):
-	forbiddenletters = ""
-	includedletters = ""
-	forcedletters = []
-	misplacedletters = []
+	lettersmin = {}
+	lettersmax = {}
+	knownletterpositions = {}
+	knownfalseletterpositions = {}
+	
+	#lettersmin and lettersmax
 	for i in range(len(word)):
-		if evaluation[i] == '0':
-			if word.count(word[i]) == 1:
-				forbiddenletters += word[i]
-			else:
-				allzeroes = True
-				for i2 in range(len(word)):
-					if word[i2] == word[i] and evaluation[i2] != 0:
-						allzeroes = False
-						break
-				if(allzeroes):  
-					forbiddenletters += word[i]
-		if evaluation[i] == '1':
-			includedletters += word[i]
-			misplacedletters.append([word[i], i])
+		zeroes = 0
+		onesandtwos = 0
+		for i2 in range(len(word)):
+			if word[i2] == word[i]:
+				if evaluation[i2] == '0':
+					zeroes += 1
+				else:
+					onesandtwos += 1
+		if onesandtwos != 0:
+			if word[i] not in lettersmin:
+				lettersmin[word[i]] = 0
+			if lettersmin[word[i]] < onesandtwos:
+				lettersmin[word[i]] = onesandtwos
+		if zeroes != 0:
+			if word[i] not in lettersmax:
+				lettersmax[word[i]] = 69
+			if lettersmax[word[i]] > onesandtwos:
+				lettersmax[word[i]] = onesandtwos
+	
+	#Known- and and knownfalsepositions
+	for i in range(len(word)):
+		if evaluation[i] == '1' or evaluation[i] == 0:
+			if word[i] not in knownfalseletterpositions:
+				knownfalseletterpositions[word[i]] = []
+			knownfalseletterpositions[word[i]].append(i)
 		if evaluation[i] == '2':
-			forcedletters.append([word[i], i])
+			if word[i] not in knownletterpositions:
+				knownletterpositions[word[i]] = []
+			knownletterpositions[word[i]].append(i)
+			
+	#debugging for variables used in filtering
+	'''
+	print("lettersmin:")
+	for key in lettersmin:
+		print(" -> " + key + " -> " + str(lettersmin[key]))
+	print("lettersmax:")
+	for key in lettersmax:
+		print(" -> " + key + " -> " + str(lettersmax[key]))
+	print("known:")
+	for key in knownletterpositions:
+		print(" -> " + key)
+		for pos in knownletterpositions[key]:
+			print("     -> " + str(pos))
+	print("known false:")
+	for key in knownfalseletterpositions:
+		print(" -> " + key)
+		for pos in knownfalseletterpositions[key]:
+			print("     -> " + str(pos))
+	'''
 	
+	#remove words with too many instances of a letter
 	for i in range(len(dictionary)-1, -1, -1):
-		for forbiddenletter in forbiddenletters:
-			if forbiddenletter in dictionary[i]:
+		for char in lettersmax:
+			if dictionary[i].count(char) > lettersmax[char]:
 				dictionary.pop(i)
 				break
 	
+	#remove words with too few instances of a letter
 	for i in range(len(dictionary)-1, -1, -1):
-		for includedletter in includedletters:
-			if includedletter not in dictionary[i]:
+		for char in lettersmin:
+			if dictionary[i].count(char) < lettersmin[char]:
 				dictionary.pop(i)
 				break
 	
+	#remove word with letters in the wrong places
 	for i in range(len(dictionary)-1, -1, -1):
-		for forcedletter in forcedletters:
-			if dictionary[i][forcedletter[1]] != forcedletter[0]:
-				dictionary.pop(i)
-				break
+		for char in knownfalseletterpositions:
+			for pos in knownfalseletterpositions[char]:
+				if dictionary[i][pos] == char:
+					dictionary.pop(i)
+					break
 				
+	#remove word with wrong letters in known positions
 	for i in range(len(dictionary)-1, -1, -1):
-		for misplacedletter in misplacedletters:
-			if dictionary[i][misplacedletter[1]] == misplacedletter[0]:
-				dictionary.pop(i)
+		for char in knownletterpositions:
+			breakfurther = False
+			for pos in knownletterpositions[char]:
+				if dictionary[i][pos] != char:
+					dictionary.pop(i)
+					breakfurther = True
+					break
+			if breakfurther:
 				break
 				
 	return dictionary
