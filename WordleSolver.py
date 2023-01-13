@@ -98,10 +98,15 @@ def stripdictionary(dictionary, word, evaluation):
 	#remove word with letters in the wrong places
 	for i in range(len(dictionary)-1, -1, -1):
 		for char in knownfalseletterpositions:
+			breakfurther = False
 			for pos in knownfalseletterpositions[char]:
 				if dictionary[i][pos] == char:
 					dictionary.pop(i)
+					breakfurther = True
 					break
+			if breakfurther:
+				break
+				
 				
 	#remove word with wrong letters in known positions
 	for i in range(len(dictionary)-1, -1, -1):
