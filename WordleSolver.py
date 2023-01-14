@@ -129,6 +129,54 @@ def stripdictionary(dictionary, word, evaluation):
 				
 	return dictionary
 
+#takes words out based on historic data from previous guesses. Used to filter generated "words"
+def stripdictionaryglobal(dictionary):	
+	global lettersmin
+	global lettersmax
+	global knownletterpositions
+	global knownfalseletterpositions
+	
+	#remove words with too many instances of a letter
+	for i in range(len(dictionary)-1, -1, -1):
+		for char in lettersmax:
+			if dictionary[i].count(char) > lettersmax[char]:
+				dictionary.pop(i)
+				break
+	
+	#remove words with too few instances of a letter
+	for i in range(len(dictionary)-1, -1, -1):
+		for char in lettersmin:
+			if dictionary[i].count(char) < lettersmin[char]:
+				dictionary.pop(i)
+				break
+	
+	#remove word with letters in the wrong places
+	for i in range(len(dictionary)-1, -1, -1):
+		for char in knownfalseletterpositions:
+			breakfurther = False
+			for pos in knownfalseletterpositions[char]:
+				if dictionary[i][pos] == char:
+					dictionary.pop(i)
+					breakfurther = True
+					break
+			if breakfurther:
+				break
+				
+				
+	#remove word with wrong letters in known positions
+	for i in range(len(dictionary)-1, -1, -1):
+		for char in knownletterpositions:
+			breakfurther = False
+			for pos in knownletterpositions[char]:
+				if dictionary[i][pos] != char:
+					dictionary.pop(i)
+					breakfurther = True
+					break
+			if breakfurther:
+				break
+				
+	return dictionary
+
 
 print("Welcome to wordle solver.")
 length = -1
@@ -142,7 +190,7 @@ dictionary = getdictionary(length)
 print("Dictionary length: " + str(len(dictionary)))
 print("now to get started, you should start with a word that has as many different characters as possible. Here is a few suggestions.")
 
-for i in range(50):
+for i in range(10):
 	suggestion = ""
 	while True:
 		suggestion = dictionary[int(len(dictionary) * random.random())]
@@ -177,6 +225,37 @@ while True:
 	
 	if len(dictionary) == 0:
 		print("Sorry, it seems the word isn't in my dictionary.")
+		print("We can however make word combinations which do still fit. I will process these now, this will take a moment.")
+		characters = "abcdefghijklmnopqrstuvwxyz"
+
+		#Strip out characters we know don't exists
+		for i in range(len(characters)-1, -1, -1):
+			if i in lettersmax and lettersmax[characters[i]] == 0:
+				characters = characters[:i] + characters[i+1:]
+
+		indexes = []
+		for i in range(length):
+			indexes.append(0)
+
+		dictionary = []
+
+		while(indexes[0] < len(characters)):
+			string = ""
+			for i in range(len(indexes)):
+				string += characters[indexes[i]]
+			dictionary.append(string)
+			indexes[-1] += 1
+			for i in range(len(indexes)-1, 0, -1):
+				if indexes[i] == len(characters):
+					indexes[i] = 0
+					indexes[i-1] += 1
+
+		dictionary = stripdictionaryglobal(dictionary)
+
+		print("I found " + str(len(dictionary)) + " word combinations which fit. here they are:")
+		for word in dictionary:
+			print(word)
+
 		break
 	if len(dictionary) == 1:
 		print("It seems that the only possible answer is:")
