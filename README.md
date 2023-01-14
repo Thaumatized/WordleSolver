@@ -8,4 +8,3 @@ supports different length words. A good place to play 4-11 length words is https
 TODO
 - Smarter srategy for finding the correct words, where we take "guesses" which can't be the correct one, but reveal information about other letters, stripping down possibilities further.
 - (possibly) look for a dictionary, which better matches most wordle implementations.
-- Use starting words from a premade list, to get nice starting words. This will also fix an off-by-one error.
