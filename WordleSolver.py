@@ -1,9 +1,12 @@
 import os
 import random
 
-
-characters = "abcdefghijklmnopqrstuvwxyz"
 dictionary = []	
+
+lettersmin = {}
+lettersmax = {}
+knownletterpositions = {}
+knownfalseletterpositions = {}
 	
 def getdictionary(length):
 	if not os.path.exists("StrippedDictionaries"):
@@ -23,12 +26,19 @@ def getdictionary(length):
 	
 
 #takes words out of a dictionary based on results from wordle
-def stripdictionary(dictionary, word, evaluation):
-	lettersmin = {}
-	lettersmax = {}
-	knownletterpositions = {}
-	knownfalseletterpositions = {}
-	
+def stripdictionary(dictionary, word, evaluation):	
+	#global ones are used in case we need to generate all possible letter combinations
+	global lettersmin
+	global lettersmax
+	global knownletterpositions
+	global knownfalseletterpositions
+
+	#current ones are used to eliminate ones that don't fit from the library
+	currentlettersmin = {}
+	currentlettersmax = {}
+	currentknownletterpositions = {}
+	currentknownfalseletterpositions = {}
+
 	#lettersmin and lettersmax
 	for i in range(len(word)):
 		zeroes = 0
@@ -44,11 +54,22 @@ def stripdictionary(dictionary, word, evaluation):
 				lettersmin[word[i]] = 0
 			if lettersmin[word[i]] < onesandtwos:
 				lettersmin[word[i]] = onesandtwos
+				
+			if word[i] not in currentlettersmin:
+				currentlettersmin[word[i]] = 0
+			if currentlettersmin[word[i]] < onesandtwos:
+				currentlettersmin[word[i]] = onesandtwos
 		if zeroes != 0:
+			#if lettersmax doesn't have the current character we cant compare it, so we add it.
 			if word[i] not in lettersmax:
-				lettersmax[word[i]] = 69
-			if lettersmax[word[i]] > onesandtwos:
 				lettersmax[word[i]] = onesandtwos
+			elif lettersmax[word[i]] > onesandtwos:
+				lettersmax[word[i]] = onesandtwos
+				
+			if word[i] not in currentlettersmax:
+				currentlettersmax[word[i]] = onesandtwos
+			elif currentlettersmax[word[i]] > onesandtwos:
+				currentlettersmax[word[i]] = onesandtwos
 	
 	#Known- and and knownfalsepositions
 	for i in range(len(word)):
@@ -56,30 +77,64 @@ def stripdictionary(dictionary, word, evaluation):
 			if word[i] not in knownfalseletterpositions:
 				knownfalseletterpositions[word[i]] = []
 			knownfalseletterpositions[word[i]].append(i)
+			if word[i] not in currentknownfalseletterpositions:
+				currentknownfalseletterpositions[word[i]] = []
+			currentknownfalseletterpositions[word[i]].append(i)
 		if evaluation[i] == '2':
 			if word[i] not in knownletterpositions:
 				knownletterpositions[word[i]] = []
 			knownletterpositions[word[i]].append(i)
-			
-	#debugging for variables used in filtering
-	'''
-	print("lettersmin:")
-	for key in lettersmin:
-		print(" -> " + key + " -> " + str(lettersmin[key]))
-	print("lettersmax:")
-	for key in lettersmax:
-		print(" -> " + key + " -> " + str(lettersmax[key]))
-	print("known:")
-	for key in knownletterpositions:
-		print(" -> " + key)
-		for pos in knownletterpositions[key]:
-			print("     -> " + str(pos))
-	print("known false:")
-	for key in knownfalseletterpositions:
-		print(" -> " + key)
-		for pos in knownfalseletterpositions[key]:
-			print("     -> " + str(pos))
-	'''
+			if word[i] not in currentknownletterpositions:
+				currentknownletterpositions[word[i]] = []
+			currentknownletterpositions[word[i]].append(i)
+	
+	#remove words with too many instances of a letter
+	for i in range(len(dictionary)-1, -1, -1):
+		for char in currentlettersmax:
+			if dictionary[i].count(char) > currentlettersmax[char]:
+				dictionary.pop(i)
+				break
+	
+	#remove words with too few instances of a letter
+	for i in range(len(dictionary)-1, -1, -1):
+		for char in currentlettersmin:
+			if dictionary[i].count(char) < currentlettersmin[char]:
+				dictionary.pop(i)
+				break
+	
+	#remove word with letters in the wrong places
+	for i in range(len(dictionary)-1, -1, -1):
+		for char in currentknownfalseletterpositions:
+			breakfurther = False
+			for pos in currentknownfalseletterpositions[char]:
+				if dictionary[i][pos] == char:
+					dictionary.pop(i)
+					breakfurther = True
+					break
+			if breakfurther:
+				break
+				
+				
+	#remove word with wrong letters in known positions
+	for i in range(len(dictionary)-1, -1, -1):
+		for char in currentknownletterpositions:
+			breakfurther = False
+			for pos in currentknownletterpositions[char]:
+				if dictionary[i][pos] != char:
+					dictionary.pop(i)
+					breakfurther = True
+					break
+			if breakfurther:
+				break
+				
+	return dictionary
+
+#takes words out based on historic data from previous guesses. Used to filter generated "words"
+def stripdictionaryglobal(dictionary):	
+	global lettersmin
+	global lettersmax
+	global knownletterpositions
+	global knownfalseletterpositions
 	
 	#remove words with too many instances of a letter
 	for i in range(len(dictionary)-1, -1, -1):
@@ -132,6 +187,7 @@ while(length == -1):
 		length = int(lengthinput)
 dictionary = getdictionary(length)
 
+print("Dictionary length: " + str(len(dictionary)))
 print("now to get started, you should start with a word that has as many different characters as possible. Here is a few suggestions.")
 
 for i in range(10):
@@ -169,6 +225,37 @@ while True:
 	
 	if len(dictionary) == 0:
 		print("Sorry, it seems the word isn't in my dictionary.")
+		print("We can however make word combinations which do still fit. I will process these now, this will take a moment.")
+		characters = "abcdefghijklmnopqrstuvwxyz"
+
+		#Strip out characters we know don't exists
+		for i in range(len(characters)-1, -1, -1):
+			if i in lettersmax and lettersmax[characters[i]] == 0:
+				characters = characters[:i] + characters[i+1:]
+
+		indexes = []
+		for i in range(length):
+			indexes.append(0)
+
+		dictionary = []
+
+		while(indexes[0] < len(characters)):
+			string = ""
+			for i in range(len(indexes)):
+				string += characters[indexes[i]]
+			dictionary.append(string)
+			indexes[-1] += 1
+			for i in range(len(indexes)-1, 0, -1):
+				if indexes[i] == len(characters):
+					indexes[i] = 0
+					indexes[i-1] += 1
+
+		dictionary = stripdictionaryglobal(dictionary)
+
+		print("I found " + str(len(dictionary)) + " word combinations which fit. here they are:")
+		for word in dictionary:
+			print(word)
+
 		break
 	if len(dictionary) == 1:
 		print("It seems that the only possible answer is:")
