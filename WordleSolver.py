@@ -60,26 +60,6 @@ def stripdictionary(dictionary, word, evaluation):
 			if word[i] not in knownletterpositions:
 				knownletterpositions[word[i]] = []
 			knownletterpositions[word[i]].append(i)
-			
-	#debugging for variables used in filtering
-	'''
-	print("lettersmin:")
-	for key in lettersmin:
-		print(" -> " + key + " -> " + str(lettersmin[key]))
-	print("lettersmax:")
-	for key in lettersmax:
-		print(" -> " + key + " -> " + str(lettersmax[key]))
-	print("known:")
-	for key in knownletterpositions:
-		print(" -> " + key)
-		for pos in knownletterpositions[key]:
-			print("     -> " + str(pos))
-	print("known false:")
-	for key in knownfalseletterpositions:
-		print(" -> " + key)
-		for pos in knownfalseletterpositions[key]:
-			print("     -> " + str(pos))
-	'''
 	
 	#remove words with too many instances of a letter
 	for i in range(len(dictionary)-1, -1, -1):
