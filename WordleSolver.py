@@ -188,19 +188,28 @@ while(length == -1):
 dictionary = getdictionary(length)
 
 print("Dictionary length: " + str(len(dictionary)))
-print("now to get started, you should start with a word that has as many different characters as possible. Here is a few suggestions.")
+print("now to get started, you should start with a word that has as many different characters as possible. Here are a few suggestions.")
 
-for i in range(10):
-	suggestion = ""
-	while True:
-		suggestion = dictionary[int(len(dictionary) * random.random())]
-		breakingout = True
-		for char in suggestion:
-			if suggestion.count(char) > 1:
-				breakingout = False
-		if breakingout:
-			break
-	print(suggestion)
+starterdictionary = open("starters.txt", "r").read().split("\n")
+for i in range(len(starterdictionary)-1, -1, -1):
+	if len(starterdictionary[i]) != length:
+		starterdictionary.pop(i)
+
+if len(starterdictionary) > 0:
+	for word in starterdictionary:
+		print(word)
+else:
+	for i in range(10):
+		suggestion = ""
+		while True:
+			suggestion = random.choice(dictionary)
+			breakingout = True
+			for char in suggestion:
+				if suggestion.count(char) > 1:
+					breakingout = False
+			if breakingout:
+				break
+		print(suggestion)
 	
 while True:
 	validinput = False
@@ -213,7 +222,7 @@ while True:
 	validinput = False
 	evaluationinput = ""
 	while not validinput:
-		print("What did we learn? write a string of numbers, with 0 meaning the letter is not in the word, 1 meaning it is but isn't in the correct position and 2 meaning it is fully correct.'")
+		print("What did we learn? write a string of numbers, with 0 meaning the letter is not in the word, 1 meaning it is but isn't in the correct position and 2 meaning it is fully correct.")
 		evaluationinput = input()
 		validinput = len(evaluationinput) == length and len(evaluationinput.replace("0", "").replace("1", "").replace("2", "")) == 0
 	
@@ -225,7 +234,7 @@ while True:
 	
 	if len(dictionary) == 0:
 		print("Sorry, it seems the word isn't in my dictionary.")
-		print("We can however make word combinations which do still fit. I will process these now, this will take a moment.")
+		print("We can however make word combinations which do still fit. I will process these now, this will take a moment, depending on the word length.")
 		characters = "abcdefghijklmnopqrstuvwxyz"
 
 		#Strip out characters we know don't exists
