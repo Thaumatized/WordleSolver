@@ -6,5 +6,5 @@ it may not be perfect for this purpose, as it contains a lot of abbreviations an
 supports different length words. A good place to play 4-11 length words is https://wordlegame.org/9-letter-words-wordle
 
 TODO
-- Smarter srategy for finding the correct words, where we take "guesses" which can't be the correct one, but reveal information about other letters, stripping down possibilities further.
+- Smarter srategy for finding the correct words, where we take "guesses" which won't necessary even be possible solutions, but reveal information about other letters, stripping down possibilities further.
 - (possibly) look for a dictionary, which better matches most wordle implementations.
